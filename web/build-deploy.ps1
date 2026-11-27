@@ -3,19 +3,31 @@
 $ErrorActionPreference = 'Stop'
 Set-Location $PSScriptRoot
 
+# Run an external program: stderr warnings must not abort the script (Windows PowerShell 5.1),
+# only a non-zero exit code does.
+function Invoke-Native {
+    param([string]$File, [string[]]$Arguments)
+    $previous = $ErrorActionPreference
+    $ErrorActionPreference = 'Continue'
+    & $File @Arguments 2>&1 | ForEach-Object { Write-Host $_ }
+    $exitCode = $LASTEXITCODE
+    $ErrorActionPreference = $previous
+    if ($exitCode -ne 0) { throw "$File $($Arguments -join ' ') failed (exit code $exitCode)" }
+}
+
 $composer = "$env:USERPROFILE\tools\composer.phar"
 Write-Host '1/4 Cài thư viện PHP (bỏ gói dev)...'
-php $composer install --no-dev --optimize-autoloader --no-interaction
+Invoke-Native 'php' @($composer, 'install', '--no-dev', '--optimize-autoloader', '--no-interaction')
 
 Write-Host '2/4 Build CSS/JS...'
-npm ci
-npm run build
+Invoke-Native 'npm' @('ci')
+Invoke-Native 'npm' @('run', 'build')
 
 Write-Host '3/4 Tạo file zip...'
 $out = Join-Path $PSScriptRoot 'thuchi-deploy.zip'
 if (Test-Path $out) { Remove-Item $out -Confirm:$false }
 $staging = Join-Path ([IO.Path]::GetTempPath()) ('thuchi-' + [guid]::NewGuid())
-robocopy $PSScriptRoot $staging /E /XD node_modules .git tests .claude /XF .env database.sqlite thuchi-deploy.zip build-deploy.ps1 .phpunit.result.cache *.log /NFL /NDL /NJH /NJS | Out-Null
+robocopy $PSScriptRoot $staging /E /XD node_modules .git tests .claude deploy /XF .env database.sqlite thuchi-deploy.zip build-deploy.ps1 .phpunit.result.cache *.log /NFL /NDL /NJH /NJS | Out-Null
 
 # Xoá dữ liệu sinh ra khi chạy thử ở máy (giữ các file .gitignore để thư mục không bị mất trong zip)
 $cleanDirs = @(
@@ -43,6 +55,6 @@ try {
 Remove-Item $staging -Recurse -Confirm:$false
 
 Write-Host '4/4 Cài lại gói dev cho máy phát triển...'
-php $composer install --no-interaction
+Invoke-Native 'php' @($composer, 'install', '--no-interaction')
 
 Write-Host "Xong: $out"
