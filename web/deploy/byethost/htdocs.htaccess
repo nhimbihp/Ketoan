@@ -1,0 +1,13 @@
+# Root .htaccess for free hosts where the web root must be htdocs (ByetHost / iFastNet).
+# Upload the whole app into htdocs, then rename this file to ".htaccess" in htdocs.
+# Every request is rewritten into public/, so .env, storage/, vendor/... are never served directly.
+<IfModule mod_rewrite.c>
+    Options -Indexes
+    RewriteEngine On
+    RewriteRule ^(.*)$ public/$1 [L]
+</IfModule>
+
+# Fallback if mod_rewrite is unavailable: block everything instead of exposing source files
+<IfModule !mod_rewrite.c>
+    Require all denied
+</IfModule>
