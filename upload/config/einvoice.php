@@ -2,10 +2,11 @@
 
 /*
 | E-invoice download from the tax portal (hoadondientu.gdt.gov.vn).
+| The API moved from port 30000 to https://hoadondientu.gdt.gov.vn/api (checked 27/11/2026).
 | Ported from the Excel add-in (mdHoadondientu.vb). Delays keep the same values as the VB code.
 */
 return [
-    'base_url' => env('EINVOICE_BASE_URL', 'https://hoadondientu.gdt.gov.vn:30000'),
+    'base_url' => env('EINVOICE_BASE_URL', 'https://hoadondientu.gdt.gov.vn/api'),
 
     // Seconds. Login POST used 10s in VB (HttpPost).
     'login_timeout' => 10,

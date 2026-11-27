@@ -17,7 +17,7 @@ class EinvoiceFlowTest extends TestCase
 {
     use RefreshDatabase;
 
-    private const BASE = 'https://hoadondientu.gdt.gov.vn:30000';
+    private const BASE = 'https://hoadondientu.gdt.gov.vn/api';
 
     private int $exportStatus = 200;
 

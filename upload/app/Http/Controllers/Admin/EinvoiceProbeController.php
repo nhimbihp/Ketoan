@@ -7,7 +7,7 @@ use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Support\Facades\Http;
 use Illuminate\View\View;
 
-/** Diagnostic: can this hosting reach the tax portal API (port 30000)? Read-only, sends no credentials. */
+/** Diagnostic: can this hosting reach the tax portal API? Read-only, sends no credentials. */
 class EinvoiceProbeController extends Controller
 {
     public function __invoke(): View
