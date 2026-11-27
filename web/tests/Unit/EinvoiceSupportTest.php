@@ -2,6 +2,7 @@
 
 namespace Tests\Unit;
 
+use App\Services\Einvoice\CaptchaSolver;
 use App\Services\Einvoice\InvoicePeriod;
 use App\Services\Einvoice\XmlExtractor;
 use Carbon\CarbonImmutable;
@@ -82,5 +83,26 @@ class EinvoiceSupportTest extends TestCase
     {
         $this->expectException(\RuntimeException::class);
         (new XmlExtractor)->extract('not a zip', 'x');
+    }
+    public function test_captcha_solver_reads_characters_ordered_by_x(): void
+    {
+        // Build a path whose command letters match a signature, starting at the given X
+        $path = function (string $signature, float $x): string {
+            $d = '';
+            foreach (str_split($signature) as $i => $cmd) {
+                $d .= $cmd === 'Z' ? 'Z' : $cmd.($cmd === 'M' && $i === 0 ? $x : $x + $i).' 20 ';
+            }
+
+            return '<path fill="#333" d="'.trim($d).'"/>';
+        };
+        $a = 'MQQQQQZMQQQQQQQQQQQZMQQQQQQQQQQQQQQQQQQZMQQZ';
+        $two = 'MQQQQQQQQQQQQQQQQQQQQQQZMQQQQQQQQQQQQQQQQQQQQQQQQQQQQQZ';
+        $noise = '<path d="M5 30 C 40 10, 65 10, 95 30" stroke="#999" fill="none"/>';
+
+        $svg = '<svg xmlns="http://www.w3.org/2000/svg" width="150" height="50">'
+            .$path($a, 80.5).$noise.$path($two, 12.25).$path($a, 140).'</svg>';
+
+        $this->assertSame('2AA', (new CaptchaSolver)->solve($svg));
+        $this->assertSame('', (new CaptchaSolver)->solve('<svg></svg>'));
     }
 }

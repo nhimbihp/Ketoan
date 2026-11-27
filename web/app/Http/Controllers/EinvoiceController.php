@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\EinvoiceBatch;
+use App\Services\Einvoice\CaptchaSolver;
 use App\Services\Einvoice\EinvoiceDownloader;
 use App\Services\Einvoice\GdtClient;
 use App\Services\Einvoice\GdtException;
@@ -38,19 +39,21 @@ class EinvoiceController extends Controller
         ]);
     }
 
-    public function loginForm(Request $request): View
+    public function loginForm(Request $request, CaptchaSolver $solver): View
     {
         $captchaSvg = null;
+        $captchaGuess = '';
         $error = null;
         try {
             $captcha = $this->client->captcha();
             $request->session()->put(self::SESSION_CAPTCHA, $captcha['key']);
             $captchaSvg = $captcha['svg'];
+            $captchaGuess = $solver->solve($captchaSvg);
         } catch (GdtException $e) {
             $error = $e->getMessage();
         }
 
-        return view('einvoices.login', ['captchaSvg' => $captchaSvg, 'captchaError' => $error]);
+        return view('einvoices.login', ['captchaSvg' => $captchaSvg, 'captchaGuess' => $captchaGuess, 'captchaError' => $error]);
     }
 
     public function login(Request $request): RedirectResponse

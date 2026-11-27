@@ -46,7 +46,7 @@ class EinvoiceFlowTest extends TestCase
                     'datas' => [['nbmst' => '0202', 'khhdon' => 'C26TBB', 'shdon' => 2, 'khmshdon' => 1, 'tdlap' => '2026-11-02T03:00:00Z']],
                 ]),
                 str_contains($url, '/invoices/detail') => Http::response(['ok' => true]),
-                str_contains($url, '/invoices/export-xml') && str_contains($url, 'shdon=1') => $this->exportStatus === 200
+                str_contains($url, '/invoices/export-xml') && str_contains($url, '&shdon=1&') => $this->exportStatus === 200
                     ? Http::response($this->zip(), 200, ['Content-Type' => 'application/zip'])
                     : Http::response('', $this->exportStatus),
                 str_contains($url, '/invoices/export-xml') => Http::response('{"message":"not found"}', 500),
@@ -135,7 +135,8 @@ class EinvoiceFlowTest extends TestCase
 
         $this->exportStatus = 429;
         $this->postJson(route('einvoices.fetch', $batch))->assertOk()->assertJson(['status' => 'paused', 'downloaded' => 0]);
-        $this->assertSame(1, $batch->items()->where('status', 'pending')->count());
+        // 429 on the first invoice stops the run, nothing is marked failed
+        $this->assertSame(2, $batch->items()->where('status', 'pending')->count());
 
         $this->exportStatus = 200;
         $this->postJson(route('einvoices.fetch', $batch))->assertOk()->assertJson(['status' => 'done', 'downloaded' => 1, 'failed' => 1]);

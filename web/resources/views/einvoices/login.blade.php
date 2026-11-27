@@ -41,7 +41,11 @@
                             <a href="{{ route('einvoices.login') }}" class="underline">Thử lại</a>
                         </div>
                     @endif
-                    <x-text-input id="captcha" name="captcha" class="mt-2 block w-48" required autocomplete="off" />
+                    {{-- Auto-filled like frmLoginHDDT (detectSVGCaptcha); user can still correct it --}}
+                    <x-text-input id="captcha" name="captcha" class="mt-2 block w-48 uppercase" required autocomplete="off" :value="$captchaGuess" />
+                    @if ($captchaSvg)
+                        <p class="mt-1 text-xs text-gray-500">{{ $captchaGuess ? 'Mã đã được tự điền, kiểm tra lại với ảnh trước khi đăng nhập.' : 'Không tự nhận được mã, vui lòng gõ theo ảnh.' }}</p>
+                    @endif
                     <x-input-error :messages="$errors->get('captcha')" class="mt-2" />
                 </div>
 
