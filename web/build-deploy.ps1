@@ -15,7 +15,7 @@ Write-Host '3/4 Tạo file zip...'
 $out = Join-Path $PSScriptRoot 'thuchi-deploy.zip'
 if (Test-Path $out) { Remove-Item $out -Confirm:$false }
 $staging = Join-Path ([IO.Path]::GetTempPath()) ('thuchi-' + [guid]::NewGuid())
-robocopy $PSScriptRoot $staging /E /XD node_modules .git tests .claude /XF .env database.sqlite thuchi-deploy.zip build-deploy.ps1 .phpunit.result.cache *.log /NFL /NDL /NJH /NJS | Out-Null
+robocopy $PSScriptRoot $staging /E /XD node_modules .git tests .claude deploy /XF .env database.sqlite thuchi-deploy.zip build-deploy.ps1 .phpunit.result.cache *.log /NFL /NDL /NJH /NJS | Out-Null
 
 # Xoá dữ liệu sinh ra khi chạy thử ở máy (giữ các file .gitignore để thư mục không bị mất trong zip)
 $cleanDirs = @(
