@@ -2,6 +2,7 @@
 @php($menu = array_filter([
     $u->tenant_id ? ['imports.create', 'Lập phiếu', 'imports.create'] : null,
     $u->tenant_id ? ['imports.index', 'Lịch sử', 'imports.index'] : null,
+    $u->tenant_id ? ['einvoices.index', 'Hóa đơn điện tử', 'einvoices.*'] : null,
     Gate::allows('manage-company') ? ['company.edit', 'Công ty', 'company.*'] : null,
     Gate::allows('manage-tenants') ? ['admin.tenants.index', 'Khách hàng', 'admin.tenants.*'] : null,
 ]))
