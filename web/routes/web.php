@@ -1,7 +1,9 @@
 <?php
 
 use App\Http\Controllers\Admin\TenantController;
+use App\Http\Controllers\Admin\EinvoiceProbeController;
 use App\Http\Controllers\CompanyController;
+use App\Http\Controllers\EinvoiceController;
 use App\Http\Controllers\ImportController;
 use App\Http\Controllers\PrintController;
 use App\Http\Controllers\ProfileController;
@@ -32,6 +34,21 @@ Route::middleware(['auth', 'tenant'])->group(function () {
     Route::get('/phieu/{import}/in', [PrintController::class, 'show'])->name('imports.print');
     Route::get('/phieu/{import}/pdf', [PrintController::class, 'pdf'])->name('imports.pdf');
 
+    // Tải hóa đơn điện tử từ cổng thuế (chuyển từ add-in Excel ExcelAddInNhapXuatTon)
+    Route::prefix('hoa-don-dien-tu')->name('einvoices.')->controller(EinvoiceController::class)->group(function () {
+        Route::get('/', 'index')->name('index');
+        Route::get('/dang-nhap', 'loginForm')->name('login');
+        Route::post('/dang-nhap', 'login')->name('login.store');
+        Route::post('/dang-xuat', 'logout')->name('logout');
+        Route::get('/tai', 'create')->name('create');
+        Route::post('/tai', 'store')->name('store');
+        Route::get('/{batch}', 'show')->whereNumber('batch')->name('show');
+        Route::post('/{batch}/danh-sach', 'listStep')->whereNumber('batch')->name('list');
+        Route::post('/{batch}/tai-xml', 'fetchStep')->whereNumber('batch')->name('fetch');
+        Route::get('/{batch}/zip', 'download')->whereNumber('batch')->name('download');
+        Route::delete('/{batch}', 'destroy')->whereNumber('batch')->name('destroy');
+    });
+
     // Chủ tài khoản quản lý công ty
     Route::middleware('can:manage-company')->group(function () {
         Route::get('/cong-ty', [CompanyController::class, 'edit'])->name('company.edit');
@@ -46,6 +63,7 @@ Route::middleware(['auth', 'tenant'])->group(function () {
 // Quản trị hệ thống: quản lý khách hàng
 Route::middleware(['auth', 'can:manage-tenants'])->prefix('admin')->name('admin.')->group(function () {
     Route::resource('tenants', TenantController::class)->except(['show', 'destroy']);
+    Route::get('hddt-kiem-tra', EinvoiceProbeController::class)->name('einvoice-probe');
 });
 
 Route::middleware('auth')->group(function () {
